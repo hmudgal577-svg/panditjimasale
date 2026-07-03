@@ -20,8 +20,10 @@ const AdminProducts = () => {
     categoryId: '',
     stock: '',
     isFeatured: false,
-    isOrganic: false
+    isOrganic: false,
+    weightOptions: []
   });
+  const [newWeight, setNewWeight] = useState({ label: '', price: '' });
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
 
@@ -61,6 +63,7 @@ const AdminProducts = () => {
       formData.append('description', form.description || '');
       formData.append('isFeatured', form.isFeatured);
       formData.append('isOrganic', form.isOrganic);
+      formData.append('weightOptions', JSON.stringify(form.weightOptions || []));
 
       // Append new image files
       images.forEach((file) => {
@@ -82,7 +85,8 @@ const AdminProducts = () => {
       }
       setShowForm(false);
       setEditing(null);
-      setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false });
+      setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false, weightOptions: [] });
+      setNewWeight({ label: '', price: '' });
       setImages([]);
       setExistingImages([]);
       loadProducts();
@@ -111,7 +115,8 @@ const AdminProducts = () => {
         <button
           onClick={() => {
             setEditing(null);
-            setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false });
+            setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false, weightOptions: [] });
+            setNewWeight({ label: '', price: '' });
             setImages([]);
             setExistingImages([]);
             setShowForm(true);
@@ -215,6 +220,64 @@ const AdminProducts = () => {
               )}
             </div>
 
+            {/* Weight options pricing manager */}
+            <div className="md:col-span-2 border-t pt-4 mt-2">
+              <label className="block text-sm font-semibold text-darkbrown mb-2">Weight Options (e.g. 100g, 250g, 1kg) & Custom Prices</label>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  placeholder="Weight (e.g. 250g)"
+                  value={newWeight.label}
+                  onChange={e => setNewWeight({ ...newWeight, label: e.target.value })}
+                  className="input-field flex-1"
+                />
+                <input
+                  type="number"
+                  placeholder="Price (₹)"
+                  value={newWeight.price}
+                  onChange={e => setNewWeight({ ...newWeight, price: e.target.value })}
+                  className="input-field w-32"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newWeight.label || !newWeight.price) {
+                      toast.error('Both label and price are required');
+                      return;
+                    }
+                    setForm(prev => ({
+                      ...prev,
+                      weightOptions: [...(prev.weightOptions || []), { label: newWeight.label, price: parseFloat(newWeight.price) }]
+                    }));
+                    setNewWeight({ label: '', price: '' });
+                  }}
+                  className="btn-primary py-2 px-4 text-sm"
+                >
+                  Add Option
+                </button>
+              </div>
+
+              {form.weightOptions && form.weightOptions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {form.weightOptions.map((opt, idx) => (
+                    <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 bg-cream text-maroon rounded-full text-sm font-medium border border-cream shadow-sm">
+                      {opt.label}: ₹{opt.price}
+                      <button
+                        type="button"
+                        onClick={() => setForm(prev => ({
+                          ...prev,
+                          weightOptions: prev.weightOptions.filter((_, i) => i !== idx)
+                        }))}
+                        className="text-red-600 hover:text-red-800 font-bold ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="md:col-span-2 flex space-x-4 border-t pt-4 mt-2">
               <label className="flex items-center text-sm font-semibold text-darkbrown cursor-pointer">
                 <input type="checkbox" checked={form.isFeatured} onChange={e => setForm({ ...form, isFeatured: e.target.checked })} className="mr-2 rounded text-maroon focus:ring-maroon" /> Featured Product
@@ -231,6 +294,7 @@ const AdminProducts = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditing(null);
+                  setNewWeight({ label: '', price: '' });
                   setImages([]);
                   setExistingImages([]);
                 }}
@@ -296,10 +360,11 @@ const AdminProducts = () => {
                             shortDescription: p.shortDescription || '',
                             price: p.price,
                             discountPrice: p.discountPrice || '',
-                            categoryId: p.categoryId,
+                           categoryId: p.categoryId,
                             stock: p.stock,
                             isFeatured: p.isFeatured,
-                            isOrganic: p.isOrganic
+                            isOrganic: p.isOrganic,
+                            weightOptions: p.weightOptions || []
                           });
                           setExistingImages(p.images || []);
                           setImages([]);
