@@ -5,6 +5,7 @@ import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi';
 import { addToCartLocal } from '../../store/cartSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../utils/image';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ const ProductCard = ({ product }) => {
 
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
   const discountPercent = hasDiscount ? Math.round(((product.price - product.discountPrice) / product.price) * 100) : 0;
-  const imageUrl = product.images?.[0] || 'https://via.placeholder.com/300x300?text=Pandit+Ji';
+  const imageUrl = getImageUrl(product.images?.[0]);
 
   return (
     <Link to={`/product/${product.slug}`} className="card group overflow-hidden">

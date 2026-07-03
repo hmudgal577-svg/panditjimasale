@@ -9,6 +9,7 @@ import SEO from '../components/common/SEO';
 import { FiHeart, FiShoppingCart, FiTruck, FiShield, FiRefreshCw, FiStar, FiMinus, FiPlus, FiSearch } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/image';
 
 // Smart keyword generator based on product name & category
 const generateKeywords = (product) => {
@@ -107,7 +108,7 @@ const ProductDetail = () => {
   const discountPercent = hasDiscount ? Math.round(((product.price - product.discountPrice) / product.price) * 100) : 0;
   const currentPrice = selectedWeight?.price || product.discountPrice || product.price;
   const originalPrice = selectedWeight ? product.price : product.price;
-  const imageUrl = product.images?.[activeImage] || product.images?.[0] || 'https://via.placeholder.com/500x500?text=Pandit+Ji';
+  const imageUrl = getImageUrl(product.images?.[activeImage] || product.images?.[0]);
 
   const productKeywords = generateKeywords(product);
   const searchTags = getSearchTags(product);

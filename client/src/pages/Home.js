@@ -7,6 +7,7 @@ import { ProductSkeleton, BannerSkeleton } from '../components/common/Skeleton';
 import { FiTruck, FiShield, FiAward, FiStar, FiArrowRight } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import SEO from '../components/common/SEO';
+import { getImageUrl } from '../utils/image';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -86,7 +87,7 @@ const Home = () => {
                 </Link>
               </div>
               <div className="w-64 h-64 md:w-80 md:h-80 mt-8 md:mt-0 overflow-hidden rounded-2xl border-4 border-white/20 shadow-2xl bg-white/10 flex items-center justify-center">
-                <img src={banner.img} alt={banner.title} className="w-full h-full object-cover" />
+                <img src={getImageUrl(banner.img)} alt={banner.title} className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
@@ -105,7 +106,7 @@ const Home = () => {
           {categories.map((cat) => (
             <Link key={cat.slug} to={`/shop?category=${cat.slug}`} className="card p-6 text-center hover:border-maroon hover:border-2 transition-all group flex flex-col items-center">
               <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-cream group-hover:border-maroon transition-colors bg-gray-50 flex items-center justify-center">
-                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <img src={getImageUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="font-heading font-bold text-lg text-darkbrown group-hover:text-maroon transition-colors">{cat.name}</h3>
               <p className="text-sm text-gray-500 mt-1">{cat.count}</p>
