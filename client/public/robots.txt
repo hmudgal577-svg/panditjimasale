@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/login
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /orders
+
+Sitemap: https://panditjimasale.com/sitemap.xml

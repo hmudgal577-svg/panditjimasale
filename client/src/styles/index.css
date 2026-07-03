@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body text-darkbrown bg-cream;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-maroon text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-maroon-light transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-saffron text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-saffron-dark transition-all duration-200;
+  }
+  .btn-outline {
+    @apply border-2 border-maroon text-maroon px-6 py-2 rounded-lg font-semibold hover:bg-maroon hover:text-white transition-all duration-200;
+  }
+  .btn-gold {
+    @apply bg-gold text-darkbrown px-6 py-2.5 rounded-lg font-semibold hover:bg-gold-dark transition-all duration-200;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-maroon focus:border-transparent outline-none transition-all;
+  }
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+  .badge-maroon {
+    @apply badge bg-maroon text-white;
+  }
+  .badge-saffron {
+    @apply badge bg-saffron text-white;
+  }
+  .badge-green {
+    @apply badge bg-green-600 text-white;
+  }
+  .section-title {
+    @apply text-3xl md:text-4xl font-heading font-bold text-darkbrown text-center;
+  }
+  .section-subtitle {
+    @apply text-gray-600 text-center mt-2 max-w-2xl mx-auto;
+  }
+}
+
+.skeleton {
+  @apply bg-gray-200 animate-pulse rounded;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #7A1E1E; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #5C1515; }
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.5); transform: scale(1); }
+  50% { box-shadow: 0 4px 30px rgba(37,211,102,0.8); transform: scale(1.03); }
+}
+
+@keyframes animate-fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: animate-fade-in 0.2s ease-out; }
+
+@keyframes animate-slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-down { animation: animate-slide-down 0.25s ease-out; }
+

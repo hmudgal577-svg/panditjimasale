@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build outputs
+client/build/
+dist/
+
+# Environment files
+.env
+server/.env
+
+# OS/System files
+.DS_Store
+Thumbs.db
+
+# Large local raw assets directory (already copied to server/uploads)
+images/
