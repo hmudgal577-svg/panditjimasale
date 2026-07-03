@@ -1,12 +1,21 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy initialization — only create instance when keys are available
+// This prevents server crash on startup if Razorpay keys are not set
+const getRazorpayInstance = () => {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret || keyId.includes('xxxx') || keyId === 'your_key_here') {
+    throw new Error('Razorpay keys not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.');
+  }
+
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+};
 
 const createOrder = async (amount, currency = 'INR') => {
+  const razorpay = getRazorpayInstance();
   const options = {
     amount: Math.round(amount * 100),
     currency,
@@ -25,4 +34,4 @@ const verifyPayment = (orderId, paymentId, signature) => {
   return expectedSignature === signature;
 };
 
-module.exports = { razorpay, createOrder, verifyPayment };
+module.exports = { getRazorpayInstance, createOrder, verifyPayment };
