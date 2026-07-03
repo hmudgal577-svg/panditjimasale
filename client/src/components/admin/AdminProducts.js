@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import API from '../../utils/axios';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../utils/image';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -41,7 +42,7 @@ const AdminProducts = () => {
   const loadCategories = async () => {
     try {
       const { data } = await API.get('/categories');
-      setCategories(data);
+      setCategories(data.categories || []);
     } catch (err) {
       console.error('Failed to load categories', err);
     }
@@ -261,7 +262,7 @@ const AdminProducts = () => {
                   <td className="p-3 font-medium text-darkbrown">
                     <div className="flex items-center space-x-3">
                       {p.images && p.images[0] && (
-                        <img src={p.images[0]} alt="" className="w-10 h-10 object-cover rounded-md border border-cream shadow-sm" />
+                        <img src={getImageUrl(p.images[0])} alt="" className="w-10 h-10 object-cover rounded-md border border-cream shadow-sm" />
                       )}
                       <span>{p.name}</span>
                     </div>
