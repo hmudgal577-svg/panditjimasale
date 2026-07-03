@@ -5,6 +5,7 @@ import { toggleWishlist } from '../store/wishlistSlice';
 import { addToCartLocal } from '../store/cartSlice';
 import { FiHeart, FiShoppingCart, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/image';
 
 const WishlistPage = () => {
   const dispatch = useDispatch();
@@ -39,7 +40,7 @@ const WishlistPage = () => {
           <div key={item.id} className="card overflow-hidden group">
             <div className="relative">
               <Link to={`/product/${item.slug}`}>
-                <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                <img src={getImageUrl(item.image) || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
               </Link>
               <button onClick={() => handleRemove(item)} className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white"><FiX className="text-red-500" /></button>
             </div>

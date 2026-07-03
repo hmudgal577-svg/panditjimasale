@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import API from '../utils/axios';
 import { FiTruck, FiChevronLeft, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/image';
 
 const OrderDetail = () => {
   const { orderId } = useParams();
@@ -69,7 +70,7 @@ const OrderDetail = () => {
           <h3 className="font-bold mb-2">Items</h3>
           {order.items?.map((item, i) => (
             <div key={i} className="flex items-center space-x-3 py-2 border-b last:border-0">
-              <img src={item.image || 'https://via.placeholder.com/48'} alt="" className="w-12 h-12 object-cover rounded" />
+              <img src={getImageUrl(item.image) || 'https://via.placeholder.com/48'} alt="" className="w-12 h-12 object-cover rounded" />
               <div className="flex-1"><Link to={`/product/${item.slug}`} className="font-medium hover:text-maroon">{item.name}</Link><p className="text-xs text-gray-500">Qty: {item.quantity} x ₹{item.price}</p></div>
               <p className="font-semibold">₹{item.total}</p>
             </div>

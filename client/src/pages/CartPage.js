@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCartLocal, updateCartLocal } from '../store/cartSlice';
 import { FiTrash2, FiMinus, FiPlus, FiArrowLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/image';
 
 const CartPage = () => {
   const { items, itemCount } = useSelector(state => state.cart);
@@ -62,7 +63,7 @@ const CartPage = () => {
           {items.map(item => (
             <div key={item.id} className="card p-4 flex items-center space-x-4">
               <Link to={`/product/${item.slug}`} className="w-20 h-20 flex-shrink-0">
-                <img src={item.image || 'https://via.placeholder.com/80'} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                <img src={getImageUrl(item.image) || 'https://via.placeholder.com/80'} alt={item.name} className="w-full h-full object-cover rounded-lg" />
               </Link>
               <div className="flex-1 min-w-0">
                 <Link to={`/product/${item.slug}`} className="font-semibold hover:text-maroon line-clamp-1">{item.name}</Link>
