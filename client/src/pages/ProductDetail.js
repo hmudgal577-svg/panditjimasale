@@ -104,10 +104,15 @@ const ProductDetail = () => {
   );
 
   const isInWishlist = wishlist.some(i => i.productId === product.id || i.id === product.id);
-  const hasDiscount = product.discountPrice && product.discountPrice < product.price;
-  const discountPercent = hasDiscount ? Math.round(((product.price - product.discountPrice) / product.price) * 100) : 0;
-  const currentPrice = selectedWeight?.price || product.discountPrice || product.price;
-  const originalPrice = selectedWeight ? product.price : product.price;
+  
+  // Handle price & discount dynamically based on selected weight or product level
+  const originalPrice = selectedWeight ? selectedWeight.price : product.price;
+  const currentPrice = selectedWeight 
+    ? (selectedWeight.discountPrice || selectedWeight.price) 
+    : (product.discountPrice || product.price);
+  const hasDiscount = currentPrice < originalPrice;
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
+  
   const imageUrl = getImageUrl(product.images?.[activeImage] || product.images?.[0]);
 
   const productKeywords = generateKeywords(product);
@@ -204,10 +209,15 @@ const ProductDetail = () => {
               <span className="text-gray-400 text-sm">({product.numReviews} reviews)</span>
             </div>
 
-            <div className="flex items-baseline space-x-3 mb-5 bg-white rounded-xl p-4 border border-gray-100">
+            <div className="flex items-baseline space-x-3 mb-5 bg-white rounded-xl p-4 border border-gray-100 flex-wrap gap-2">
               <span className="text-4xl font-bold text-maroon">₹{currentPrice}</span>
-              {hasDiscount && <span className="text-xl text-gray-400 line-through">₹{originalPrice}</span>}
-              <span className="text-sm text-green-600 font-medium">Free delivery above ₹499</span>
+              {hasDiscount && (
+                <>
+                  <span className="text-xl text-gray-400 line-through">₹{originalPrice}</span>
+                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">{discountPercent}% OFF</span>
+                </>
+              )}
+              <span className="text-xs text-gray-400 ml-auto">Free delivery above ₹499</span>
             </div>
 
             {/* Weight Options */}
@@ -215,11 +225,32 @@ const ProductDetail = () => {
               <div className="mb-5">
                 <h3 className="font-semibold mb-2 text-gray-700">Select Weight:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.weightOptions.map((w, i) => (
-                    <button key={i} onClick={() => setSelectedWeight(w)} className={`px-4 py-2 rounded-xl border-2 font-medium text-sm transition-all ${selectedWeight?.label === w.label ? 'border-maroon bg-maroon text-white shadow-sm' : 'border-gray-200 hover:border-maroon text-gray-700'}`}>
-                      {w.label} — ₹{w.price}
-                    </button>
-                  ))}
+                  {product.weightOptions.map((w, i) => {
+                    const optionMRP = w.price;
+                    const optionPrice = w.discountPrice || w.price;
+                    const optionDiscount = optionMRP > optionPrice ? Math.round(((optionMRP - optionPrice) / optionMRP) * 100) : 0;
+                    const isSelected = selectedWeight?.label === w.label;
+                    return (
+                      <button 
+                        key={i} 
+                        onClick={() => setSelectedWeight(w)} 
+                        className={`px-4 py-2 rounded-xl border-2 font-medium text-sm transition-all flex items-center gap-1 ${
+                          isSelected 
+                            ? 'border-maroon bg-maroon text-white shadow-sm' 
+                            : 'border-gray-200 hover:border-maroon text-gray-700'
+                        }`}
+                      >
+                        <span>{w.label} — ₹{optionPrice}</span>
+                        {optionDiscount > 0 && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                            isSelected ? 'bg-white text-maroon' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {optionDiscount}% OFF
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

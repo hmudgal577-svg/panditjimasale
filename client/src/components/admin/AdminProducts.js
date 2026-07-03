@@ -23,7 +23,7 @@ const AdminProducts = () => {
     isOrganic: false,
     weightOptions: []
   });
-  const [newWeight, setNewWeight] = useState({ label: '', price: '' });
+  const [newWeight, setNewWeight] = useState({ label: '', price: '', discountPrice: '' });
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
 
@@ -86,7 +86,7 @@ const AdminProducts = () => {
       setShowForm(false);
       setEditing(null);
       setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false, weightOptions: [] });
-      setNewWeight({ label: '', price: '' });
+      setNewWeight({ label: '', price: '', discountPrice: '' });
       setImages([]);
       setExistingImages([]);
       loadProducts();
@@ -116,7 +116,7 @@ const AdminProducts = () => {
           onClick={() => {
             setEditing(null);
             setForm({ name: '', description: '', shortDescription: '', price: '', discountPrice: '', categoryId: '', stock: '', isFeatured: false, isOrganic: false, weightOptions: [] });
-            setNewWeight({ label: '', price: '' });
+            setNewWeight({ label: '', price: '', discountPrice: '' });
             setImages([]);
             setExistingImages([]);
             setShowForm(true);
@@ -222,58 +222,108 @@ const AdminProducts = () => {
 
             {/* Weight options pricing manager */}
             <div className="md:col-span-2 border-t pt-4 mt-2">
-              <label className="block text-sm font-semibold text-darkbrown mb-2">Weight Options (e.g. 100g, 250g, 1kg) & Custom Prices</label>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  placeholder="Weight (e.g. 250g)"
-                  value={newWeight.label}
-                  onChange={e => setNewWeight({ ...newWeight, label: e.target.value })}
-                  className="input-field flex-1"
-                />
-                <input
-                  type="number"
-                  placeholder="Price (₹)"
-                  value={newWeight.price}
-                  onChange={e => setNewWeight({ ...newWeight, price: e.target.value })}
-                  className="input-field w-32"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!newWeight.label || !newWeight.price) {
-                      toast.error('Both label and price are required');
-                      return;
-                    }
-                    setForm(prev => ({
-                      ...prev,
-                      weightOptions: [...(prev.weightOptions || []), { label: newWeight.label, price: parseFloat(newWeight.price) }]
-                    }));
-                    setNewWeight({ label: '', price: '' });
-                  }}
-                  className="btn-primary py-2 px-4 text-sm"
-                >
-                  Add Option
-                </button>
+              <label className="block text-sm font-semibold text-darkbrown mb-2">Weight Options (e.g. 100g, 250g, 1kg) with MRP & Discount Prices</label>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Weight Label *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 250g"
+                    value={newWeight.label}
+                    onChange={e => setNewWeight({ ...newWeight, label: e.target.value })}
+                    className="input-field w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Original Price (MRP) *</label>
+                  <input
+                    type="number"
+                    placeholder="₹ Original"
+                    value={newWeight.price}
+                    onChange={e => setNewWeight({ ...newWeight, price: e.target.value })}
+                    className="input-field w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Discount Price (Selling Price)</label>
+                  <input
+                    type="number"
+                    placeholder="₹ Discounted"
+                    value={newWeight.discountPrice}
+                    onChange={e => setNewWeight({ ...newWeight, discountPrice: e.target.value })}
+                    className="input-field w-full"
+                  />
+                </div>
               </div>
 
+              {newWeight.price && newWeight.discountPrice && parseFloat(newWeight.price) > parseFloat(newWeight.discountPrice) && (
+                <div className="text-xs text-green-600 font-semibold mb-3 px-1">
+                  🎉 Calculated Discount: {Math.round(((parseFloat(newWeight.price) - parseFloat(newWeight.discountPrice)) / parseFloat(newWeight.price)) * 100)}% OFF
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newWeight.label || !newWeight.price) {
+                    toast.error('Both weight label and original price are required');
+                    return;
+                  }
+                  const optionPrice = parseFloat(newWeight.price);
+                  const optionDiscount = newWeight.discountPrice ? parseFloat(newWeight.discountPrice) : null;
+                  
+                  if (optionDiscount && optionDiscount >= optionPrice) {
+                    toast.error('Discount price must be less than original price');
+                    return;
+                  }
+
+                  setForm(prev => ({
+                    ...prev,
+                    weightOptions: [
+                      ...(prev.weightOptions || []), 
+                      { 
+                        label: newWeight.label, 
+                        price: optionPrice, 
+                        discountPrice: optionDiscount 
+                      }
+                    ]
+                  }));
+                  setNewWeight({ label: '', price: '', discountPrice: '' });
+                }}
+                className="btn-outline w-full py-2 text-sm font-semibold"
+              >
+                + Add Weight Option
+              </button>
+
               {form.weightOptions && form.weightOptions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.weightOptions.map((opt, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 bg-cream text-maroon rounded-full text-sm font-medium border border-cream shadow-sm">
-                      {opt.label}: ₹{opt.price}
-                      <button
-                        type="button"
-                        onClick={() => setForm(prev => ({
-                          ...prev,
-                          weightOptions: prev.weightOptions.filter((_, i) => i !== idx)
-                        }))}
-                        className="text-red-600 hover:text-red-800 font-bold ml-1"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+                <div className="mt-4 space-y-2">
+                  <span className="text-xs font-semibold text-darkbrown block">Added Weight Options:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {form.weightOptions.map((opt, idx) => {
+                      const discount = opt.discountPrice && opt.price > opt.discountPrice 
+                        ? Math.round(((opt.price - opt.discountPrice) / opt.price) * 100) 
+                        : 0;
+                      return (
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 bg-cream text-maroon rounded-full text-sm font-medium border border-cream shadow-sm">
+                          <strong>{opt.label}:</strong> 
+                          <span className={opt.discountPrice ? 'line-through text-xs text-gray-400' : ''}>₹{opt.price}</span>
+                          {opt.discountPrice && <span>₹{opt.discountPrice}</span>}
+                          {discount > 0 && <span className="text-[10px] text-green-700 bg-green-50 px-1 rounded font-bold">{discount}% OFF</span>}
+                          <button
+                            type="button"
+                            onClick={() => setForm(prev => ({
+                              ...prev,
+                              weightOptions: prev.weightOptions.filter((_, i) => i !== idx)
+                            }))}
+                            className="text-red-600 hover:text-red-800 font-bold ml-1"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -294,7 +344,7 @@ const AdminProducts = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditing(null);
-                  setNewWeight({ label: '', price: '' });
+                  setNewWeight({ label: '', price: '', discountPrice: '' });
                   setImages([]);
                   setExistingImages([]);
                 }}
