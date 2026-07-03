@@ -57,7 +57,29 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connected successfully');
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    await sequelize.sync({ force: false });
+
+    // Auto-seed database if empty (first time deployment)
+    try {
+      const { Product } = require('./models');
+      const productCount = await Product.count();
+      if (productCount === 0) {
+        console.log('Database is empty — running auto-seed...');
+        const seed = require('./seeders/seed');
+        if (typeof seed === 'function') {
+          await seed();
+        } else {
+          // seed.js runs itself, just require it
+          console.log('Seed script executed on require.');
+        }
+        console.log('Auto-seed completed!');
+      } else {
+        console.log(`Database already has ${productCount} products — skipping seed.`);
+      }
+    } catch (seedErr) {
+      console.error('Auto-seed warning (non-fatal):', seedErr.message);
+    }
+
     app.listen(PORT, () => {
       console.log(`Pandit Ji server running on port ${PORT}`);
     });

@@ -5,8 +5,7 @@ const { User, Category, Product, SiteSetting } = require('../models');
 
 const seed = async () => {
   try {
-    await sequelize.sync({ force: true });
-    console.log('Database synced');
+    console.log('Starting seed...');
 
     const admin = await User.create({
       name: 'Admin Pandit Ji',
@@ -413,11 +412,16 @@ const seed = async () => {
     console.log('Admin: admin@panditji.com / admin123');
     console.log('Customer: rahul@example.com / customer123');
 
-    process.exit(0);
+    console.log('Seed completed successfully!');
   } catch (error) {
     console.error('Seed error:', error);
-    process.exit(1);
+    throw error;
   }
 };
 
-seed();
+// Run directly if called from command line
+if (require.main === module) {
+  seed().then(() => process.exit(0)).catch(() => process.exit(1));
+}
+
+module.exports = seed;
