@@ -3,17 +3,17 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/axios';
 import toast from 'react-hot-toast';
+import { FiTruck, FiMapPin, FiShoppingBag, FiCheckCircle } from 'react-icons/fi';
 
 const Checkout = () => {
   const { items } = useSelector(state => state.cart);
   const navigate = useNavigate();
-  
+
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('cod'); // Default to Cash on Delivery
   const [newAddress, setNewAddress] = useState({
     fullName: '',
     phone: '',
@@ -41,9 +41,7 @@ const Checkout = () => {
         const defaultAddr = data.addresses.find(a => a.isDefault) || data.addresses[0];
         if (defaultAddr) setSelectedAddress(defaultAddr.id);
       })
-      .catch(() => {
-        toast.error('Failed to load addresses');
-      })
+      .catch(() => toast.error('Failed to load addresses'))
       .finally(() => setLoading(false));
   }, [items, navigate]);
 
@@ -55,20 +53,11 @@ const Checkout = () => {
       setSelectedAddress(data.address.id);
       setShowAddressForm(false);
       setNewAddress({ fullName: '', phone: '', street: '', area: '', city: '', state: '', pincode: '', addressType: 'home' });
-      toast.success('Address added successfully');
+      toast.success('Address added!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add address');
     }
   };
-
-  const loadRazorpayScript = () => new Promise(resolve => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
@@ -76,104 +65,39 @@ const Checkout = () => {
       return;
     }
     setPlacing(true);
-
     try {
-      // 1. Create the order in backend
       const { data: orderData } = await API.post('/orders', {
         addressId: selectedAddress,
-        paymentMethod: paymentMethod
+        paymentMethod: 'cod'
       });
-
-      // 2. Handle Cash on Delivery (COD) Flow
-      if (paymentMethod === 'cod') {
-        toast.success('Order placed successfully! (Cash on Delivery)');
-        navigate(`/orders/${orderData.order.orderId}`);
-        return;
-      }
-
-      // 3. Handle Razorpay Online Payment Flow
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        toast.error('Failed to load payment gateway. Please use COD or try again.');
-        setPlacing(false);
-        return;
-      }
-
-      // Create Razorpay Order
-      let paymentData;
-      try {
-        const res = await API.post('/payment/create-order', { orderId: orderData.order.orderId });
-        paymentData = res.data;
-      } catch (err) {
-        // If razorpay keys are invalid/missing, help the user understand
-        toast.error('Razorpay keys are currently not configured on server. Please use Cash on Delivery (COD) to place your order.');
-        setPlacing(false);
-        return;
-      }
-
-      const options = {
-        key: paymentData.key,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        name: 'Pandit Ji Masale',
-        description: `Order ${orderData.order.orderId}`,
-        order_id: paymentData.razorpayOrderId,
-        handler: async (response) => {
-          try {
-            await API.post('/payment/verify', {
-              orderId: orderData.order.orderId,
-              paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature
-            });
-            toast.success('Payment successful!');
-            navigate(`/orders/${orderData.order.orderId}`);
-          } catch {
-            toast.error('Payment verification failed. Please contact support.');
-            navigate('/orders');
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setPlacing(false);
-            toast.error('Payment cancelled');
-          }
-        },
-        prefill: {
-          name: orderData.order.shippingAddress.fullName,
-          email: '',
-          contact: orderData.order.shippingAddress.phone
-        },
-        theme: { color: '#7A1E1E' }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', () => {
-        toast.error('Payment failed. Please try again.');
-        setPlacing(false);
-      });
-      rzp.open();
-
+      toast.success('🎉 Order placed successfully! Pay when it arrives.');
+      navigate(`/orders/${orderData.order.orderId}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to place order');
+      toast.error(err.response?.data?.message || 'Failed to place order. Please try again.');
       setPlacing(false);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-heading font-bold mb-6 text-darkbrown">Checkout</h1>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-heading font-bold mb-8 text-darkbrown">Checkout</h1>
+
       <div className="grid lg:grid-cols-3 gap-8">
+
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Delivery Address */}
           <div className="card p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
-            <h2 className="font-heading font-bold text-lg mb-4 text-darkbrown">Delivery Address</h2>
+            <h2 className="font-heading font-bold text-lg mb-4 text-darkbrown flex items-center gap-2">
+              <FiMapPin className="text-maroon" /> Delivery Address
+            </h2>
             {loading ? (
-              <div className="skeleton h-20 w-full" />
+              <div className="skeleton h-20 w-full rounded-xl" />
             ) : addresses.length === 0 && !showAddressForm ? (
-              <p className="text-gray-500 mb-4">No saved addresses. Please add one to continue.</p>
+              <p className="text-gray-500 mb-4 text-sm">No saved addresses. Please add one to continue.</p>
             ) : null}
-            
+
             <div className="space-y-3">
               {addresses.map(addr => (
                 <label key={addr.id} className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedAddress === addr.id ? 'border-maroon bg-maroon/5' : 'border-gray-100 hover:border-gray-300'}`}>
@@ -184,20 +108,21 @@ const Checkout = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-darkbrown">{addr.fullName} — {addr.phone}</p>
-                      <p className="text-sm text-gray-500 mt-1">{addr.street}, {addr.area ? `${addr.area}, ` : ''}{addr.city}, {addr.state} - {addr.pincode}</p>
+                      <p className="text-sm text-gray-500 mt-1">{addr.street}{addr.area ? `, ${addr.area}` : ''}, {addr.city}, {addr.state} - {addr.pincode}</p>
+                      <span className="text-xs bg-cream text-gray-500 px-2 py-0.5 rounded mt-1 inline-block capitalize">{addr.addressType}</span>
                     </div>
                   </div>
                 </label>
               ))}
             </div>
-            
+
             {!showAddressForm ? (
               <button onClick={() => setShowAddressForm(true)} className="btn-outline text-sm mt-4">+ Add New Address</button>
             ) : (
-              <form onSubmit={handleAddAddress} className="mt-4 grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-150">
+              <form onSubmit={handleAddAddress} className="mt-4 grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <input required placeholder="Full Name" value={newAddress.fullName} onChange={e => setNewAddress({ ...newAddress, fullName: e.target.value })} className="input-field col-span-2" />
                 <input required placeholder="Phone Number" value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} className="input-field" />
-                <input placeholder="Landmark / Area (Optional)" value={newAddress.area} onChange={e => setNewAddress({ ...newAddress, area: e.target.value })} className="input-field" />
+                <input placeholder="Landmark / Area" value={newAddress.area} onChange={e => setNewAddress({ ...newAddress, area: e.target.value })} className="input-field" />
                 <input required placeholder="Street Address" value={newAddress.street} onChange={e => setNewAddress({ ...newAddress, street: e.target.value })} className="input-field col-span-2" />
                 <input required placeholder="City" value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} className="input-field" />
                 <input required placeholder="State" value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} className="input-field" />
@@ -207,7 +132,7 @@ const Checkout = () => {
                   <option value="work">Work</option>
                   <option value="other">Other</option>
                 </select>
-                <div className="col-span-2 flex space-x-2 mt-2">
+                <div className="col-span-2 flex space-x-2 mt-1">
                   <button type="submit" className="btn-primary py-2 px-4 text-sm">Save & Select</button>
                   <button type="button" onClick={() => setShowAddressForm(false)} className="btn-outline py-2 px-4 text-sm">Cancel</button>
                 </div>
@@ -217,57 +142,76 @@ const Checkout = () => {
 
           {/* Order Items */}
           <div className="card p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
-            <h2 className="font-heading font-bold text-lg mb-4 text-darkbrown">Order Items</h2>
+            <h2 className="font-heading font-bold text-lg mb-4 text-darkbrown flex items-center gap-2">
+              <FiShoppingBag className="text-maroon" /> Your Items ({items.length})
+            </h2>
             <div className="divide-y divide-gray-100">
               {items.map(item => (
                 <div key={item.id} className="flex items-center space-x-3 py-3 last:pb-0 first:pt-0">
-                  <img src={item.image || 'https://via.placeholder.com/48'} alt="" className="w-12 h-12 object-cover rounded-xl border border-gray-100" />
+                  <img src={item.image || 'https://via.placeholder.com/48'} alt={item.name} className="w-12 h-12 object-cover rounded-xl border border-gray-100" />
                   <div className="flex-1">
                     <p className="font-medium text-sm text-darkbrown">{item.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{item.weight ? `Weight: ${item.weight} | ` : ''}Qty: {item.quantity}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.weight ? `${item.weight} | ` : ''}Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold text-darkbrown">₹{item.price * item.quantity}</p>
+                  <p className="font-semibold text-darkbrown">₹{(item.price * item.quantity).toFixed(0)}</p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Payment Method — COD Only */}
+          <div className="card p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
+            <h2 className="font-heading font-bold text-lg mb-4 text-darkbrown flex items-center gap-2">
+              <FiTruck className="text-maroon" /> Payment Method
+            </h2>
+            <div className="flex items-start p-4 rounded-xl border-2 border-maroon bg-maroon/5">
+              <FiCheckCircle className="text-maroon mt-0.5 mr-3 flex-shrink-0" size={20} />
+              <div>
+                <p className="font-bold text-darkbrown">Cash on Delivery (COD)</p>
+                <p className="text-sm text-gray-500 mt-1">Pay in cash or UPI when the order arrives at your doorstep. No advance payment needed.</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <div className="card p-6 bg-white border border-gray-100 rounded-2xl shadow-sm sticky top-24 space-y-6">
+          <div className="card p-6 bg-white border border-gray-100 rounded-2xl shadow-sm sticky top-24 space-y-5">
             <h2 className="font-heading font-bold text-xl text-darkbrown">Order Summary</h2>
+
             <div className="space-y-2.5 text-sm text-gray-600">
-              <div className="flex justify-between"><span>Subtotal</span><span className="font-medium text-darkbrown">₹{subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span>{deliveryCharge === 0 ? <span className="text-green-600 font-medium">FREE</span> : `₹${deliveryCharge}`}</span></div>
-              <div className="flex justify-between"><span>GST (5%)</span><span className="font-medium text-darkbrown">₹{gst.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Subtotal ({items.length} items)</span><span className="font-medium text-darkbrown">₹{subtotal.toFixed(0)}</span></div>
+              <div className="flex justify-between"><span>Delivery Charges</span>
+                <span>{deliveryCharge === 0
+                  ? <span className="text-green-600 font-medium">FREE 🎉</span>
+                  : `₹${deliveryCharge}`}
+                </span>
+              </div>
+              <div className="flex justify-between"><span>GST (5%)</span><span className="font-medium text-darkbrown">₹{gst.toFixed(0)}</span></div>
+              {subtotal > 0 && subtotal < 499 && (
+                <p className="text-xs text-saffron bg-saffron/10 px-3 py-2 rounded-lg">Add ₹{(499 - subtotal).toFixed(0)} more for FREE delivery!</p>
+              )}
               <hr className="border-gray-100" />
-              <div className="flex justify-between font-bold text-lg text-darkbrown"><span>Total Amount</span><span className="text-maroon">₹{total.toFixed(2)}</span></div>
+              <div className="flex justify-between font-bold text-lg text-darkbrown">
+                <span>Total Amount</span>
+                <span className="text-maroon">₹{total.toFixed(0)}</span>
+              </div>
             </div>
 
-            {/* Payment Selector */}
-            <div className="space-y-2.5 pt-2">
-              <h3 className="font-bold text-sm text-gray-700">Choose Payment Option:</h3>
-              <label className={`flex items-start p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-maroon bg-maroon/2' : 'border-gray-200'}`}>
-                <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="mt-1 mr-2 accent-maroon" />
-                <div>
-                  <div className="font-semibold text-sm text-darkbrown">Cash on Delivery (COD)</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Pay in cash or UPI when order reaches your door.</div>
-                </div>
-              </label>
-              <label className={`flex items-start p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'razorpay' ? 'border-maroon bg-maroon/2' : 'border-gray-200'}`}>
-                <input type="radio" name="paymentMethod" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={() => setPaymentMethod('razorpay')} className="mt-1 mr-2 accent-maroon" />
-                <div>
-                  <div className="font-semibold text-sm text-darkbrown">Pay Online (Razorpay)</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Secure payment via UPI, Credit/Debit Cards, NetBanking.</div>
-                </div>
-              </label>
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
+              <FiTruck className="text-green-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-green-700 font-medium">Cash on Delivery — Pay when order arrives. Safe & easy!</p>
             </div>
 
-            <button onClick={handlePlaceOrder} disabled={placing || !selectedAddress} className="btn-primary w-full py-3.5 font-bold shadow-md hover:shadow-lg transition-all">
-              {placing ? 'Processing...' : paymentMethod === 'cod' ? `Place Order (COD) — ₹${total.toFixed(2)}` : `Pay Online — ₹${total.toFixed(2)}`}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={placing || !selectedAddress || loading}
+              className="btn-primary w-full py-4 font-bold text-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+            >
+              {placing ? '⏳ Placing Order...' : `Place Order — ₹${total.toFixed(0)}`}
             </button>
-            <p className="text-xxs text-gray-400 text-center">By placing your order you agree to our Terms and Conditions.</p>
+
+            <p className="text-xs text-gray-400 text-center">By placing your order you agree to our Terms & Conditions.</p>
           </div>
         </div>
 
