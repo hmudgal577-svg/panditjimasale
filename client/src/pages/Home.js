@@ -47,7 +47,7 @@ const Home = () => {
     '@type': 'LocalBusiness',
     name: 'Pandit Ji Masale',
     description: 'Premium quality Khade Masale, Dry Fruits, and Pooja Samagri online store in India.',
-    url: 'https://panditjimasale.com',
+    url: 'https://client-chi-silk.vercel.app',
     telephone: '+917415992703',
     contactPoint: {
       '@type': 'ContactPoint',
@@ -60,9 +60,33 @@ const Home = () => {
       '@type': 'OfferCatalog',
       name: 'Masale, Dry Fruits & Pooja Samagri',
       itemListElement: [
-        { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Khade Masale (Whole Spices)' } },
-        { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Dry Fruits' } },
-        { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Pooja Samagri' } },
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'item': {
+            '@type': 'Thing',
+            'name': 'Khade Masale (Whole Spices)',
+            'description': 'Premium Whole Spices'
+          }
+        },
+        {
+          '@type': 'ListItem',
+          'position': 2,
+          'item': {
+            '@type': 'Thing',
+            'name': 'Dry Fruits',
+            'description': 'Premium Dry Fruits & Nuts'
+          }
+        },
+        {
+          '@type': 'ListItem',
+          'position': 3,
+          'item': {
+            '@type': 'Thing',
+            'name': 'Pooja Samagri',
+            'description': 'Pure Puja Samagri & Items'
+          }
+        }
       ],
     },
   };
