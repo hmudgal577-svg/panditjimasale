@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi';
-import { addToCartLocal } from '../../store/cartSlice';
+import { addToCart } from '../../store/cartSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/image';
@@ -10,12 +10,13 @@ import { getImageUrl } from '../../utils/image';
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
   const wishlist = useSelector(state => state.wishlist.items);
+  const { isAuthenticated } = useSelector(state => state.auth);
   const isInWishlist = wishlist.some(i => i.productId === product.id || i.id === product.id);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(addToCartLocal({ product, quantity: 1 }));
+    dispatch(addToCart({ product, quantity: 1, isAuthenticated }));
     toast.success('Added to cart!');
   };
 

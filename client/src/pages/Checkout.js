@@ -27,8 +27,7 @@ const Checkout = () => {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryCharge = subtotal >= 499 ? 0 : 40;
-  const gst = subtotal * 0.05;
-  const total = Math.max(0, subtotal + deliveryCharge + gst);
+  const total = Math.max(0, subtotal + deliveryCharge);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -187,7 +186,6 @@ const Checkout = () => {
                   : `₹${deliveryCharge}`}
                 </span>
               </div>
-              <div className="flex justify-between"><span>GST (5%)</span><span className="font-medium text-darkbrown">₹{gst.toFixed(0)}</span></div>
               {subtotal > 0 && subtotal < 499 && (
                 <p className="text-xs text-saffron bg-saffron/10 px-3 py-2 rounded-lg">Add ₹{(499 - subtotal).toFixed(0)} more for FREE delivery!</p>
               )}

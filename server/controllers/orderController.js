@@ -1,5 +1,5 @@
 const { Order, Cart, Product, Address, Coupon } = require('../models');
-const { generateOrderId, calculateGST } = require('../utils/helpers');
+const { generateOrderId } = require('../utils/helpers');
 const { Op } = require('sequelize');
 
 const createOrder = async (req, res, next) => {
@@ -46,8 +46,8 @@ const createOrder = async (req, res, next) => {
       await appliedCoupon.update({ usedCount: appliedCoupon.usedCount + 1 });
     }
     const deliveryCharge = subtotal >= 499 ? 0 : 40;
-    const gst = calculateGST(subtotal - couponDiscount);
-    const total = Math.max(0, subtotal - couponDiscount + deliveryCharge + gst);
+    const gst = 0;
+    const total = Math.max(0, subtotal - couponDiscount + deliveryCharge);
     const orderId = generateOrderId();
     const order = await Order.create({
       orderId,

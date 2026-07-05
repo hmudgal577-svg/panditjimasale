@@ -10,30 +10,56 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWi
   }
 });
 
-export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ productId, quantity, weight }, { rejectWithValue }) => {
+// Sync local cart to API on login
+export const syncLocalCartToAPI = createAsyncThunk('cart/syncLocal', async (localItems, { rejectWithValue }) => {
   try {
-    const { data } = await API.post('/cart', { productId, quantity, weight });
+    const { data } = await API.post('/cart/sync', { items: localItems });
     return data;
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to add to cart');
+    return rejectWithValue(error.response?.data?.message || 'Failed to sync local cart');
   }
 });
 
-export const updateCartItemAPI = createAsyncThunk('cart/updateCartItem', async ({ id, quantity }, { rejectWithValue }) => {
-  try {
-    const { data } = await API.put(`/cart/${id}`, { quantity });
-    return data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to update cart');
+// Wrapper Thunks for components to call directly
+export const addToCart = createAsyncThunk('cart/add', async ({ product, quantity, weight, isAuthenticated }, { dispatch, rejectWithValue }) => {
+  if (isAuthenticated) {
+    try {
+      const { data } = await API.post('/cart', { productId: product.id, quantity, weight });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add to cart');
+    }
+  } else {
+    dispatch(addToCartLocal({ product, quantity, weight }));
+    return null;
   }
 });
 
-export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (id, { rejectWithValue }) => {
-  try {
-    const { data } = await API.delete(`/cart/${id}`);
-    return data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to remove from cart');
+export const updateCartItem = createAsyncThunk('cart/update', async ({ id, quantity, isAuthenticated }, { dispatch, rejectWithValue }) => {
+  if (isAuthenticated) {
+    try {
+      const { data } = await API.put(`/cart/${id}`, { quantity });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update cart');
+    }
+  } else {
+    dispatch(updateCartLocal({ id, quantity }));
+    return null;
+  }
+});
+
+export const removeFromCart = createAsyncThunk('cart/remove', async ({ id, isAuthenticated }, { dispatch, rejectWithValue }) => {
+  if (isAuthenticated) {
+    try {
+      const { data } = await API.delete(`/cart/${id}`);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to remove from cart');
+    }
+  } else {
+    dispatch(removeFromCartLocal(id));
+    return null;
   }
 });
 
@@ -103,37 +129,59 @@ const cartSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    const mapCartItems = (items) => {
+      return items.map(i => ({
+        id: i.id,
+        productId: i.Product?.id || i.productId,
+        name: i.Product?.name || '',
+        slug: i.Product?.slug || '',
+        image: i.Product?.images?.[0] || '',
+        price: i.price,
+        quantity: i.quantity,
+        weight: i.weight,
+      }));
+    };
+
     builder
-      .addCase(addToCartAPI.fulfilled, (state, action) => {
-        if (action.payload.items) {
-          const mapped = action.payload.items.map(i => ({
-            id: i.id,
-            productId: i.Product?.id || i.productId,
-            name: i.Product?.name || '',
-            slug: i.Product?.slug || '',
-            image: i.Product?.images?.[0] || '',
-            price: i.price,
-            quantity: i.quantity,
-            weight: i.weight,
-          }));
+      .addCase(fetchCart.fulfilled, (state, action) => {
+        if (action.payload?.items) {
+          const mapped = mapCartItems(action.payload.items);
           state.items = mapped;
           state.itemCount = mapped.reduce((s, i) => s + i.quantity, 0);
           localStorage.setItem('cart', JSON.stringify(mapped));
           localStorage.setItem('cartCount', state.itemCount.toString());
         }
       })
-      .addCase(fetchCart.fulfilled, (state, action) => {
-        if (action.payload.items) {
-          const mapped = action.payload.items.map(i => ({
-            id: i.id,
-            productId: i.Product?.id || i.productId,
-            name: i.Product?.name || '',
-            slug: i.Product?.slug || '',
-            image: i.Product?.images?.[0] || '',
-            price: i.price,
-            quantity: i.quantity,
-            weight: i.weight,
-          }));
+      .addCase(syncLocalCartToAPI.fulfilled, (state, action) => {
+        if (action.payload?.items) {
+          const mapped = mapCartItems(action.payload.items);
+          state.items = mapped;
+          state.itemCount = mapped.reduce((s, i) => s + i.quantity, 0);
+          localStorage.setItem('cart', JSON.stringify(mapped));
+          localStorage.setItem('cartCount', state.itemCount.toString());
+        }
+      })
+      .addCase(addToCart.fulfilled, (state, action) => {
+        if (action.payload?.items) {
+          const mapped = mapCartItems(action.payload.items);
+          state.items = mapped;
+          state.itemCount = mapped.reduce((s, i) => s + i.quantity, 0);
+          localStorage.setItem('cart', JSON.stringify(mapped));
+          localStorage.setItem('cartCount', state.itemCount.toString());
+        }
+      })
+      .addCase(updateCartItem.fulfilled, (state, action) => {
+        if (action.payload?.items) {
+          const mapped = mapCartItems(action.payload.items);
+          state.items = mapped;
+          state.itemCount = mapped.reduce((s, i) => s + i.quantity, 0);
+          localStorage.setItem('cart', JSON.stringify(mapped));
+          localStorage.setItem('cartCount', state.itemCount.toString());
+        }
+      })
+      .addCase(removeFromCart.fulfilled, (state, action) => {
+        if (action.payload?.items) {
+          const mapped = mapCartItems(action.payload.items);
           state.items = mapped;
           state.itemCount = mapped.reduce((s, i) => s + i.quantity, 0);
           localStorage.setItem('cart', JSON.stringify(mapped));

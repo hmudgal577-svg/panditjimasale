@@ -83,4 +83,37 @@ const clearCart = async (req, res, next) => {
   }
 };
 
-module.exports = { getCart, addToCart, updateCartItem, removeFromCart, clearCart };
+const syncCartItems = async (req, res, next) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      const existing = await Cart.findAll({
+        where: { userId: req.user.id },
+        include: [{ model: Product, attributes: ['id', 'name', 'slug', 'price', 'discountPrice', 'images', 'stock'] }],
+      });
+      return res.json({ success: true, items: existing });
+    }
+    for (const item of items) {
+      if (!item.productId) continue;
+      const product = await Product.findByPk(item.productId);
+      if (!product || !product.isActive) continue;
+      const price = item.price || product.discountPrice || product.price;
+      const existing = await Cart.findOne({ where: { userId: req.user.id, productId: item.productId, weight: item.weight || null } });
+      if (existing) {
+        existing.quantity = Math.max(existing.quantity, item.quantity || 1);
+        await existing.save();
+      } else {
+        await Cart.create({ userId: req.user.id, productId: item.productId, quantity: item.quantity || 1, weight: item.weight || null, price });
+      }
+    }
+    const updatedItems = await Cart.findAll({
+      where: { userId: req.user.id },
+      include: [{ model: Product, attributes: ['id', 'name', 'slug', 'price', 'discountPrice', 'images', 'stock'] }],
+    });
+    res.json({ success: true, items: updatedItems });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getCart, addToCart, updateCartItem, removeFromCart, clearCart, syncCartItems };

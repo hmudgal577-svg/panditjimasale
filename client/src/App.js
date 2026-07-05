@@ -4,10 +4,8 @@ import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProfile } from './store/authSlice';
-import { fetchCart } from './store/cartSlice';
-import { syncCart } from './store/cartSlice';
-import { fetchWishlist } from './store/wishlistSlice';
-import { syncWishlist } from './store/wishlistSlice';
+import { fetchCart, syncLocalCartToAPI, syncCart } from './store/cartSlice';
+import { fetchWishlist, syncWishlist } from './store/wishlistSlice';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -91,7 +89,16 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(getProfile());
-      dispatch(fetchCart());
+      // Sync any guest cart items to DB, then fetch fresh cart
+      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      if (localCart.length > 0) {
+        dispatch(syncLocalCartToAPI(localCart)).then(() => {
+          localStorage.removeItem('cart');
+          localStorage.removeItem('cartCount');
+        });
+      } else {
+        dispatch(fetchCart());
+      }
       dispatch(fetchWishlist());
     } else {
       const localCart = JSON.parse(localStorage.getItem('cart') || '[]');

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import API from '../utils/axios';
-import { addToCartLocal } from '../store/cartSlice';
+import { addToCart } from '../store/cartSlice';
 import { toggleWishlist } from '../store/wishlistSlice';
 import ProductCard from '../components/common/ProductCard';
 import SEO from '../components/common/SEO';
@@ -141,8 +141,10 @@ const ProductDetail = () => {
     } : undefined,
   };
 
+  const { isAuthenticated } = useSelector(state => state.auth);
+
   const handleAddToCart = () => {
-    dispatch(addToCartLocal({ product: { ...product, discountPrice: currentPrice, price: originalPrice }, quantity, weight: selectedWeight?.label }));
+    dispatch(addToCart({ product: { ...product, discountPrice: currentPrice, price: originalPrice }, quantity, weight: selectedWeight?.label, isAuthenticated }));
     toast.success('Cart mein add ho gaya!');
   };
 

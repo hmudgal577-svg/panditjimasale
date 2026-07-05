@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeFromCartLocal, updateCartLocal } from '../store/cartSlice';
+import { removeFromCart, updateCartItem } from '../store/cartSlice';
 import { FiTrash2, FiMinus, FiPlus, FiArrowLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/image';
 
 const CartPage = () => {
   const { items, itemCount } = useSelector(state => state.cart);
+  const { isAuthenticated } = useSelector(state => state.auth);
   const dispatch = useDispatch();
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -15,16 +16,15 @@ const CartPage = () => {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryCharge = subtotal >= 499 ? 0 : 40;
-  const gst = subtotal * 0.05;
-  const total = Math.max(0, subtotal - couponDiscount + deliveryCharge + gst);
+  const total = Math.max(0, subtotal - couponDiscount + deliveryCharge);
 
   const handleQuantity = (item, delta) => {
     const newQty = item.quantity + delta;
     if (newQty <= 0) {
-      dispatch(removeFromCartLocal(item.id));
+      dispatch(removeFromCart({ id: item.id, isAuthenticated }));
       toast.success('Removed from cart');
     } else {
-      dispatch(updateCartLocal({ id: item.id, quantity: newQty }));
+      dispatch(updateCartItem({ id: item.id, quantity: newQty, isAuthenticated }));
     }
   };
 
@@ -76,7 +76,7 @@ const CartPage = () => {
                 <button onClick={() => handleQuantity(item, 1)} className="p-1.5 hover:bg-cream"><FiPlus size={14} /></button>
               </div>
               <p className="font-bold text-lg w-20 text-right">₹{item.price * item.quantity}</p>
-              <button onClick={() => { dispatch(removeFromCartLocal(item.id)); toast.success('Removed'); }} className="p-2 text-gray-400 hover:text-red-500"><FiTrash2 /></button>
+              <button onClick={() => { dispatch(removeFromCart({ id: item.id, isAuthenticated })); toast.success('Removed'); }} className="p-2 text-gray-400 hover:text-red-500"><FiTrash2 /></button>
             </div>
           ))}
         </div>
@@ -88,7 +88,6 @@ const CartPage = () => {
               <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
               <div className="flex justify-between"><span>Delivery</span><span>{deliveryCharge === 0 ? <span className="text-green-600 font-medium">FREE</span> : `₹${deliveryCharge}`}</span></div>
               {couponDiscount > 0 && <div className="flex justify-between text-green-600"><span>Coupon Discount</span><span>-₹{couponDiscount.toFixed(2)}</span></div>}
-              <div className="flex justify-between"><span>GST (5%)</span><span>₹{gst.toFixed(2)}</span></div>
               <hr />
               <div className="flex justify-between font-bold text-lg"><span>Total</span><span className="text-maroon">₹{total.toFixed(2)}</span></div>
             </div>
