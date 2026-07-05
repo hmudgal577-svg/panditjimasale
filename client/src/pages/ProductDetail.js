@@ -141,8 +141,6 @@ const ProductDetail = () => {
     } : undefined,
   };
 
-  const { isAuthenticated } = useSelector(state => state.auth);
-
   const handleAddToCart = () => {
     dispatch(addToCart({ product: { ...product, discountPrice: currentPrice, price: originalPrice }, quantity, weight: selectedWeight?.label, isAuthenticated }));
     toast.success('Cart mein add ho gaya!');
