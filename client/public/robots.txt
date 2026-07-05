@@ -7,4 +7,4 @@ Disallow: /checkout
 Disallow: /account
 Disallow: /orders
 
-Sitemap: https://panditjimasale.com/sitemap.xml
+Sitemap: https://client-chi-silk.vercel.app/sitemap.xml
