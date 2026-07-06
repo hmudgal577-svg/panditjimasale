@@ -20,9 +20,9 @@ export const fetchFeaturedProducts = createAsyncThunk('products/fetchFeatured', 
 });
 
 const initialState = {
-  products: [],
-  featured: [],
-  total: 0,
+  products: JSON.parse(localStorage.getItem('cached_products') || '[]'),
+  featured: JSON.parse(localStorage.getItem('cached_featured') || '[]'),
+  total: parseInt(localStorage.getItem('cached_total') || '0'),
   page: 1,
   totalPages: 1,
   loading: false,
@@ -42,13 +42,21 @@ const productSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProducts.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(fetchProducts.pending, (state) => { 
+        // Only set loading to true if we don't already have cached products to show
+        if (state.products.length === 0) {
+          state.loading = true; 
+        }
+        state.error = null; 
+      })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload.products;
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
+        localStorage.setItem('cached_products', JSON.stringify(action.payload.products));
+        localStorage.setItem('cached_total', action.payload.total.toString());
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
@@ -56,6 +64,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
         state.featured = action.payload.products;
+        localStorage.setItem('cached_featured', JSON.stringify(action.payload.products));
       });
   },
 });
