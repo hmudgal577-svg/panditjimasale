@@ -4,6 +4,19 @@ import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/image';
 
+const getMinPriceOption = (options) => {
+  if (!options || options.length === 0) return null;
+  return options.reduce((min, opt) => {
+    const optCheapest = (opt.discountPrice !== null && opt.discountPrice !== undefined && opt.discountPrice !== '')
+      ? parseFloat(opt.discountPrice)
+      : parseFloat(opt.price);
+    const minCheapest = (min.discountPrice !== null && min.discountPrice !== undefined && min.discountPrice !== '')
+      ? parseFloat(min.discountPrice)
+      : parseFloat(min.price);
+    return optCheapest < minCheapest ? opt : min;
+  });
+};
+
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -53,10 +66,21 @@ const AdminProducts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let finalPrice = form.price;
+      let finalDiscountPrice = form.discountPrice;
+
+      if (form.weightOptions && form.weightOptions.length > 0) {
+        const minOpt = getMinPriceOption(form.weightOptions);
+        if (minOpt) {
+          finalPrice = minOpt.price;
+          finalDiscountPrice = minOpt.discountPrice || '';
+        }
+      }
+
       const formData = new FormData();
       formData.append('name', form.name);
-      formData.append('price', form.price);
-      formData.append('discountPrice', form.discountPrice || '');
+      formData.append('price', finalPrice);
+      formData.append('discountPrice', finalDiscountPrice || '');
       formData.append('stock', form.stock);
       formData.append('categoryId', form.categoryId);
       formData.append('shortDescription', form.shortDescription || '');
@@ -106,6 +130,30 @@ const AdminProducts = () => {
     }
   };
 
+  const handleToggleSoldOut = async (product) => {
+    try {
+      const isCurrentlySoldOut = product.stock <= 0;
+      let newStock = 0;
+      if (isCurrentlySoldOut) {
+        const input = prompt('Enter new stock quantity:', '100');
+        if (input === null) return;
+        newStock = parseInt(input, 10);
+        if (isNaN(newStock) || newStock < 0) {
+          toast.error('Please enter a valid stock number');
+          return;
+        }
+      } else {
+        if (!window.confirm(`Mark "${product.name}" as Sold Out (Set stock to 0)?`)) return;
+      }
+
+      await API.put(`/products/${product.id}`, { stock: newStock });
+      toast.success(isCurrentlySoldOut ? 'Product restocked successfully' : 'Product marked as Sold Out');
+      loadProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update stock');
+    }
+  };
+
   const filtered = products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -142,13 +190,35 @@ const AdminProducts = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-darkbrown mb-1">Price (₹) *</label>
-              <input required placeholder="Price" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="input-field w-full" />
+              <label className="block text-sm font-semibold text-darkbrown mb-1">
+                Price (₹) {form.weightOptions?.length > 0 ? '(Auto-calculated)' : '*'}
+              </label>
+              <input
+                required={!form.weightOptions || form.weightOptions.length === 0}
+                disabled={form.weightOptions && form.weightOptions.length > 0}
+                placeholder={form.weightOptions && form.weightOptions.length > 0 ? "Calculated from lowest weight" : "Price"}
+                type="number"
+                value={form.price}
+                onChange={e => setForm({ ...form, price: e.target.value })}
+                className="input-field w-full disabled:bg-gray-100 disabled:text-gray-500"
+              />
+              {form.weightOptions && form.weightOptions.length > 0 && (
+                <p className="text-[11px] text-gray-500 mt-1">Calculated from weight options price</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-darkbrown mb-1">Discount Price (₹)</label>
-              <input placeholder="Discount Price" type="number" value={form.discountPrice} onChange={e => setForm({ ...form, discountPrice: e.target.value })} className="input-field w-full" />
+              <label className="block text-sm font-semibold text-darkbrown mb-1">
+                Discount Price (₹) {form.weightOptions?.length > 0 ? '(Auto-calculated)' : ''}
+              </label>
+              <input
+                disabled={form.weightOptions && form.weightOptions.length > 0}
+                placeholder={form.weightOptions && form.weightOptions.length > 0 ? "Calculated from lowest weight" : "Discount Price"}
+                type="number"
+                value={form.discountPrice}
+                onChange={e => setForm({ ...form, discountPrice: e.target.value })}
+                className="input-field w-full disabled:bg-gray-100 disabled:text-gray-500"
+              />
             </div>
 
             <div>
@@ -278,17 +348,23 @@ const AdminProducts = () => {
                     return;
                   }
 
-                  setForm(prev => ({
-                    ...prev,
-                    weightOptions: [
+                  setForm(prev => {
+                    const newOptions = [
                       ...(prev.weightOptions || []), 
                       { 
                         label: newWeight.label, 
                         price: optionPrice, 
                         discountPrice: optionDiscount 
                       }
-                    ]
-                  }));
+                    ];
+                    const minOpt = getMinPriceOption(newOptions);
+                    return {
+                      ...prev,
+                      weightOptions: newOptions,
+                      price: minOpt ? minOpt.price : prev.price,
+                      discountPrice: minOpt ? (minOpt.discountPrice || '') : prev.discountPrice
+                    };
+                  });
                   setNewWeight({ label: '', price: '', discountPrice: '' });
                 }}
                 className="btn-outline w-full py-2 text-sm font-semibold"
@@ -312,10 +388,16 @@ const AdminProducts = () => {
                           {discount > 0 && <span className="text-[10px] text-green-700 bg-green-50 px-1 rounded font-bold">{discount}% OFF</span>}
                           <button
                             type="button"
-                            onClick={() => setForm(prev => ({
-                              ...prev,
-                              weightOptions: prev.weightOptions.filter((_, i) => i !== idx)
-                            }))}
+                            onClick={() => setForm(prev => {
+                              const newOptions = prev.weightOptions.filter((_, i) => i !== idx);
+                              const minOpt = getMinPriceOption(newOptions);
+                              return {
+                                ...prev,
+                                weightOptions: newOptions,
+                                price: minOpt ? minOpt.price : '',
+                                discountPrice: minOpt ? (minOpt.discountPrice || '') : ''
+                              };
+                            })}
                             className="text-red-600 hover:text-red-800 font-bold ml-1"
                           >
                             ×
@@ -383,9 +465,17 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-3 font-semibold text-maroon">₹{p.discountPrice || p.price}</td>
                   <td className="p-3">
-                    <span className={p.stock <= 10 ? 'text-red-600 font-bold' : 'text-gray-600'}>
-                      {p.stock} {p.stock <= 10 && '(Low)'}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${p.stock <= 0 ? 'bg-red-100 text-red-700' : p.stock <= 10 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {p.stock <= 0 ? 'Sold Out' : `${p.stock} in stock`}
+                      </span>
+                      <button
+                        onClick={() => handleToggleSoldOut(p)}
+                        className={`text-xs font-bold px-2 py-0.5 rounded border transition-colors ${p.stock <= 0 ? 'border-green-600 text-green-600 hover:bg-green-50' : 'border-red-600 text-red-600 hover:bg-red-50'}`}
+                      >
+                        {p.stock <= 0 ? 'Restock' : 'Sold Out'}
+                      </button>
+                    </div>
                   </td>
                   <td className="p-3 text-gray-500">{p.isFeatured ? '✓' : '-'}</td>
                   <td className="p-3">
