@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
-import { FiClock, FiArrowRight } from 'react-icons/fi';
+import { FiClock, FiArrowRight, FiBookOpen, FiUser, FiCalendar, FiTag, FiHash } from 'react-icons/fi';
 
 const BLOGS = [
   {
@@ -13,7 +13,7 @@ const BLOGS = [
     emoji: '🌶️',
     date: '25 June 2025',
     readTime: '5 min',
-    color: 'from-red-800 to-red-600',
+    color: 'from-red-950 to-red-800',
     content: [
       {
         heading: 'Khade Masale Kya Hote Hain?',
@@ -51,7 +51,7 @@ const BLOGS = [
     emoji: '🥜',
     date: '18 June 2025',
     readTime: '6 min',
-    color: 'from-amber-700 to-amber-500',
+    color: 'from-amber-950 to-amber-800',
     content: [
       {
         heading: 'Dry Fruits — Nature Ka Superfood',
@@ -93,7 +93,7 @@ const BLOGS = [
     emoji: '🪔',
     date: '10 June 2025',
     readTime: '4 min',
-    color: 'from-orange-700 to-orange-500',
+    color: 'from-orange-950 to-orange-850',
     content: [
       {
         heading: 'Nitya Pooja (Daily Worship) Ki Zaruri Samagri',
@@ -123,7 +123,7 @@ const BLOGS = [
     emoji: '🫙',
     date: '2 June 2025',
     readTime: '4 min',
-    color: 'from-green-800 to-green-600',
+    color: 'from-green-950 to-green-800',
     content: [
       {
         heading: 'Masalon Ka Dushman — Namee, Roshni aur Hawa',
@@ -151,83 +151,134 @@ const BLOGS = [
 ];
 
 // Blog List Page
-export const BlogList = () => (
-  <div className="bg-gray-50 min-h-screen">
-    <SEO
-      title="Blog — Masale, Dry Fruits & Pooja Ke Baare Mein Jaanein"
-      description="Pandit Ji Masale ke blog mein padhe masalon ke fayde, dry fruits nutrition, pooja samagri guide aur kitchen tips. Gwalior, MP se aapke liye."
-      keywords="masale ke fayde, dry fruits benefits, pooja samagri guide, khade masale kaise use karein, kitchen tips hindi"
-      url="/blog"
-    />
+export const BlogList = () => {
+  const [activeCategory, setActiveCategory] = useState('Sab');
 
-    {/* Header */}
-    <div className="bg-gradient-to-r from-maroon to-darkbrown text-white py-14">
-      <div className="max-w-5xl mx-auto px-4 text-center">
-        <p className="text-gold font-medium mb-2 text-sm uppercase tracking-widest">Pandit Ji Ka</p>
-        <h1 className="text-4xl md:text-5xl font-heading font-bold mb-3">Knowledge Hub 📚</h1>
-        <p className="text-white/75 text-lg max-w-xl mx-auto">Masale, Dry Fruits aur Pooja Samagri ke baare mein useful jankari — aapke liye</p>
-      </div>
-    </div>
+  const filteredBlogs = activeCategory === 'Sab'
+    ? BLOGS
+    : BLOGS.filter(blog => blog.category === activeCategory);
 
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2 mb-10 justify-center">
-        {['Sab', 'Sehat & Poshan', 'Nutrition & Health', 'Aadhyatmik', 'Kitchen Tips'].map(cat => (
-          <span key={cat} className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-600 cursor-default hover:border-maroon hover:text-maroon transition-colors">
-            {cat}
+  const categories = ['Sab', 'Sehat & Poshan', 'Nutrition & Health', 'Aadhyatmik', 'Kitchen Tips'];
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <SEO
+        title="Blog — Masale, Dry Fruits & Pooja Ke Baare Mein Jaanein"
+        description="Pandit Ji Masale ke blog mein padhe masalon ke fayde, dry fruits nutrition, pooja samagri guide aur kitchen tips. Gwalior, MP se aapke liye."
+        keywords="masale ke fayde, dry fruits benefits, pooja samagri guide, khade masale kaise use karein, kitchen tips hindi"
+        url="/blog"
+      />
+
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-maroon to-darkbrown text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
+          <span className="bg-gold/20 text-gold px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 inline-block">
+            Pandit Ji Knowledge Center
           </span>
-        ))}
+          <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">Ayurvedic & Healthy Living Blog 📚</h1>
+          <p className="text-white/80 text-lg max-w-2xl mx-auto leading-relaxed">
+            Shuddh Khade Masale, Premium Dry Fruits, aur Pooja Vidhi ke labh aur sahi nuskhe jaanein.
+          </p>
+        </div>
       </div>
 
-      {/* Blog Grid */}
-      <div className="grid md:grid-cols-2 gap-7">
-        {BLOGS.map(blog => (
-          <Link key={blog.id} to={`/blog/${blog.slug}`} className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            {/* Card Top Color */}
-            <div className={`bg-gradient-to-r ${blog.color} p-6 relative overflow-hidden`}>
-              <span className="text-5xl">{blog.emoji}</span>
-              <div className="absolute right-4 top-4 bg-white/20 rounded-full px-3 py-1 text-white text-xs font-medium">
-                {blog.category}
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center gap-3 text-gray-400 text-xs mb-3">
-                <span className="flex items-center gap-1"><FiClock size={12} /> {blog.readTime} read</span>
-                <span>•</span>
-                <span>{blog.date}</span>
-              </div>
-              <h2 className="font-heading font-bold text-lg text-darkbrown mb-2 group-hover:text-maroon transition-colors leading-snug">
-                {blog.title}
-              </h2>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">{blog.excerpt}</p>
-              <div className="flex items-center text-maroon text-sm font-semibold group-hover:gap-2 transition-all gap-1">
-                Poora Padein <FiArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2.5 mb-10 justify-center">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border cursor-pointer
+                ${activeCategory === cat
+                  ? 'bg-maroon text-white border-maroon shadow-md shadow-maroon/20 scale-105'
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-maroon hover:text-maroon hover:bg-maroon/5'
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
-      {/* CTA */}
-      <div className="mt-14 bg-gradient-to-r from-maroon to-darkbrown rounded-2xl p-8 text-white text-center">
-        <h3 className="font-heading font-bold text-2xl mb-2">Shuddh Masale Order Karein 🌶️</h3>
-        <p className="text-white/75 mb-5">Gwalior aur poore India mein free delivery ₹499+ orders par</p>
-        <Link to="/shop" className="inline-block bg-gold text-darkbrown px-8 py-3 rounded-xl font-bold hover:bg-gold-dark transition-colors">
-          Abhi Shop Karein →
-        </Link>
+        {/* Blog Grid */}
+        {filteredBlogs.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+            <p className="text-4xl mb-3">🔍</p>
+            <h3 className="font-heading font-bold text-lg text-darkbrown">Koi article nahi mila</h3>
+            <p className="text-gray-500 text-sm mt-1">Kripya koi doosra category chunein.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-8">
+            {filteredBlogs.map(blog => (
+              <Link
+                key={blog.id}
+                to={`/blog/${blog.slug}`}
+                className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col h-full"
+              >
+                {/* Header Banner Color block */}
+                <div className={`bg-gradient-to-r ${blog.color} p-8 relative overflow-hidden flex items-center justify-between`}>
+                  <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                  <span className="text-5xl filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-300">{blog.emoji}</span>
+                  <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-white text-xs font-semibold shadow-sm">
+                    {blog.category}
+                  </span>
+                </div>
+                {/* Body details */}
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 text-gray-400 text-xs mb-3 font-medium">
+                      <span className="flex items-center gap-1"><FiClock size={12} /> {blog.readTime} read</span>
+                      <span>•</span>
+                      <span>{blog.date}</span>
+                    </div>
+                    <h2 className="font-heading font-bold text-lg md:text-xl text-darkbrown mb-3.5 group-hover:text-maroon transition-colors leading-snug">
+                      {blog.title}
+                    </h2>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-5 line-clamp-3">{blog.excerpt}</p>
+                  </div>
+                  <div className="flex items-center text-maroon text-sm font-bold border-t border-gray-50 pt-4 mt-auto group-hover:text-maroon-light transition-colors">
+                    <span>Poora Padein</span>
+                    <FiArrowRight size={16} className="ml-1.5 transform group-hover:translate-x-1.5 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Shuddh Quality Promo Banner */}
+        <div className="mt-16 bg-gradient-to-br from-darkbrown to-maroon rounded-3xl p-8 md:p-10 text-white relative overflow-hidden shadow-lg border border-maroon/20">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <span className="bg-gold text-darkbrown px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block">
+                100% Pure & Organic
+              </span>
+              <h3 className="font-heading font-bold text-2xl md:text-3xl mb-2.5">Ghar Baithe Order Karein 🌶️</h3>
+              <p className="text-white/80 text-sm md:text-base max-w-lg leading-relaxed">
+                Pandit Ji se khareedein shuddh khade masale, taaza dry fruits, aur certified pooja samagri. Free delivery on orders above ₹499!
+              </p>
+            </div>
+            <Link to="/shop" className="bg-gold text-darkbrown hover:bg-gold-dark px-8 py-3.5 rounded-xl font-bold transition-all duration-200 transform hover:scale-105 shadow-md shadow-gold/20 flex items-center gap-1 text-base">
+              Shop Catalog Now <FiArrowRight />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Individual Blog Post Page
 export const BlogPost = ({ slug }) => {
   const blog = BLOGS.find(b => b.slug === slug);
   if (!blog) return (
-    <div className="text-center py-20">
-      <p className="text-5xl mb-4">📄</p>
-      <h2 className="text-2xl font-bold text-darkbrown">Article nahi mila</h2>
-      <Link to="/blog" className="mt-4 inline-block text-maroon hover:underline">← Blog par waapis jaayein</Link>
+    <div className="text-center py-20 bg-gray-50 min-h-screen flex flex-col items-center justify-center">
+      <p className="text-6xl mb-4">🔍</p>
+      <h2 className="text-2xl font-bold text-darkbrown font-heading">Article Nahi Mila</h2>
+      <p className="text-gray-500 mt-1">Jis blog article ko aap dhoond rahe hain wo abhi uplabdh nahi hai.</p>
+      <Link to="/blog" className="mt-6 btn-primary px-6 py-2.5">← Blog par waapis jaayein</Link>
     </div>
   );
 
@@ -237,14 +288,14 @@ export const BlogPost = ({ slug }) => {
     headline: blog.title,
     description: blog.excerpt,
     author: { '@type': 'Organization', name: 'Pandit Ji Masale' },
-    publisher: { '@type': 'Organization', name: 'Pandit Ji Masale', logo: { '@type': 'ImageObject', url: 'https://panditjimasale.com/logo.png' } },
+    publisher: { '@type': 'Organization', name: 'Pandit Ji Masale', logo: { '@type': 'ImageObject', url: 'https://client-chi-silk.vercel.app/favicon.ico' } },
     datePublished: blog.date,
     inLanguage: 'hi-IN',
     keywords: blog.tags.join(', '),
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 min-h-screen pb-16">
       <SEO
         title={blog.title}
         description={blog.excerpt}
@@ -254,71 +305,123 @@ export const BlogPost = ({ slug }) => {
         structuredData={schemaArticle}
       />
 
-      {/* Hero */}
-      <div className={`bg-gradient-to-r ${blog.color} text-white py-14`}>
-        <div className="max-w-3xl mx-auto px-4">
-          <Link to="/blog" className="text-white/70 hover:text-white text-sm mb-4 inline-flex items-center gap-1">
-            ← Blog par waapis
+      {/* Article Hero Banner */}
+      <div className={`bg-gradient-to-br ${blog.color} text-white py-16 relative overflow-hidden`}>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div className="max-w-3xl mx-auto px-4 relative z-10">
+          <Link to="/blog" className="text-white/80 hover:text-white text-sm mb-6 inline-flex items-center gap-1 transition-colors font-medium">
+            ← Waapis Blog List par
           </Link>
-          <span className="text-5xl block mb-4">{blog.emoji}</span>
-          <div className="inline-block bg-white/20 rounded-full px-3 py-1 text-sm mb-4">{blog.category}</div>
-          <h1 className="text-3xl md:text-4xl font-heading font-bold leading-snug mb-4">{blog.title}</h1>
-          <div className="flex items-center gap-3 text-white/70 text-sm">
-            <span className="flex items-center gap-1"><FiClock size={13} /> {blog.readTime} read</span>
-            <span>•</span>
-            <span>{blog.date}</span>
-            <span>•</span>
-            <span>Pandit Ji Masale, Gwalior</span>
+          <span className="text-6xl block mb-4 filter drop-shadow-md">{blog.emoji}</span>
+          <span className="inline-block bg-white/20 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-sm font-semibold mb-4">
+            {blog.category}
+          </span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold leading-tight mb-6">
+            {blog.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm border-t border-white/10 pt-5">
+            <span className="flex items-center gap-1"><FiUser /> By Pandit Ji Editor</span>
+            <span className="text-white/30">•</span>
+            <span className="flex items-center gap-1"><FiClock /> {blog.readTime} read</span>
+            <span className="text-white/30">•</span>
+            <span className="flex items-center gap-1"><FiCalendar /> {blog.date}</span>
           </div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
-        {/* Intro */}
-        <div className="bg-maroon/5 border-l-4 border-maroon rounded-r-xl p-5 mb-8">
-          <p className="text-darkbrown font-medium leading-relaxed italic">"{blog.excerpt}"</p>
+        {/* Abstract/Excerpt Quote */}
+        <div className="bg-white border-l-4 border-maroon rounded-r-2xl p-6 shadow-sm mb-10">
+          <p className="text-darkbrown font-medium leading-relaxed italic text-base md:text-lg">
+            "{blog.excerpt}"
+          </p>
         </div>
 
-        {/* Content Sections */}
+        {/* Content Blocks */}
         <div className="space-y-8">
           {blog.content.map((section, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="font-heading font-bold text-xl text-darkbrown mb-3">{section.heading}</h2>
-              <p className="text-gray-600 leading-relaxed">{section.text}</p>
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 hover:shadow-md transition-shadow">
+              <h2 className="font-heading font-bold text-xl md:text-2xl text-darkbrown mb-4 border-b border-gray-50 pb-2.5">
+                {section.heading}
+              </h2>
+              <p className="text-gray-600 leading-relaxed text-base md:text-lg whitespace-pre-line">
+                {section.text}
+              </p>
             </div>
           ))}
         </div>
 
         {/* Tags */}
-        <div className="mt-8 flex flex-wrap gap-2">
-          {blog.tags.map(tag => (
-            <span key={tag} className="bg-maroon/10 text-maroon text-sm px-3 py-1.5 rounded-full font-medium">#{tag}</span>
-          ))}
+        <div className="mt-10 border-t border-gray-200 pt-6">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1">
+            <FiTag /> Related Tags
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {blog.tags.map(tag => (
+              <span key={tag} className="bg-maroon/5 text-maroon hover:bg-maroon/10 border border-maroon/10 text-sm px-3.5 py-1.5 rounded-full font-medium transition-colors flex items-center gap-0.5">
+                <FiHash className="opacity-40" />{tag}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-10 bg-gradient-to-r from-maroon to-darkbrown rounded-2xl p-7 text-white text-center">
-          <p className="text-lg font-heading font-bold mb-2">Shuddh Masale Khareedein 🛒</p>
-          <p className="text-white/70 text-sm mb-4">Gwalior se poore India mein delivery • WhatsApp: 7415992703</p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/shop" className="bg-gold text-darkbrown px-6 py-2.5 rounded-xl font-bold hover:bg-gold-dark transition-colors text-sm">
-              Shop Now →
+        {/* Author Bio Card */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 mt-12 flex items-start gap-4 shadow-sm">
+          <div className="w-12 h-12 bg-maroon text-gold font-bold font-heading rounded-full flex items-center justify-center text-lg flex-shrink-0">
+            PJ
+          </div>
+          <div>
+            <h4 className="font-bold text-darkbrown">Pandit Ji Editorial Team</h4>
+            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+              Pandit Ji Masale Gwalior ka official channel. Hum shuddh aur gunakari masalon, dry fruits aur aadhyaatmik pooja vidhiyo se judi sahi jankari aap tak pahuchate hain.
+            </p>
+          </div>
+        </div>
+
+        {/* Shop CTA Card */}
+        <div className="mt-12 bg-gradient-to-r from-maroon to-darkbrown rounded-3xl p-8 text-white text-center shadow-lg relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1.5px,transparent_1.5px)] [background-size:24px_24px]"></div>
+          <p className="text-gold font-bold uppercase tracking-wider text-xs mb-2">Buy Direct & Save</p>
+          <h3 className="text-2xl font-heading font-bold mb-3">Kya Aapko Shuddh Masale Chahiye?</h3>
+          <p className="text-white/80 text-sm mb-6 max-w-md mx-auto">
+            100% natural bina kisi chemical ya rang milawat ke. Doorstep delivery at your home.
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link to="/shop" className="bg-gold text-darkbrown px-8 py-3 rounded-xl font-bold hover:bg-gold-dark transition-all duration-200 shadow-md">
+              Order Online
             </Link>
-            <a href="https://wa.me/917415992703" target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-600 transition-colors text-sm">
-              WhatsApp Order
+            <a href="https://wa.me/917415992703?text=Namaste!%20Mujhe%20pure%20masale%20order%20karne%2520hain" target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition-all duration-200 shadow-md flex items-center gap-1">
+              Order on WhatsApp
             </a>
           </div>
         </div>
 
-        {/* Related Posts */}
-        <div className="mt-10">
-          <h3 className="font-heading font-bold text-xl text-darkbrown mb-5">Aur Bhi Padein 📖</h3>
-          <div className="grid md:grid-cols-2 gap-4">
+        {/* Read More Section */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <h3 className="font-heading font-bold text-2xl text-darkbrown mb-6 flex items-center gap-2">
+            <FiBookOpen className="text-maroon" /> Aur Bhi Padein (Read More)
+          </h3>
+          <div className="grid md:grid-cols-2 gap-5">
             {BLOGS.filter(b => b.id !== blog.id).slice(0, 2).map(b => (
-              <Link key={b.id} to={`/blog/${b.slug}`} className="bg-white rounded-xl border border-gray-100 p-4 hover:border-maroon hover:shadow-sm transition-all group">
-                <span className="text-2xl">{b.emoji}</span>
-                <h4 className="font-semibold text-darkbrown text-sm mt-2 group-hover:text-maroon transition-colors leading-snug">{b.title}</h4>
-                <p className="text-xs text-gray-400 mt-1">{b.readTime} read • {b.date}</p>
+              <Link
+                key={b.id}
+                to={`/blog/${b.slug}`}
+                className="bg-white rounded-2xl border border-gray-150 p-5 hover:border-maroon hover:shadow-lg transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-3xl filter drop-shadow-sm">{b.emoji}</span>
+                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+                      {b.category}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-darkbrown text-base group-hover:text-maroon transition-colors leading-snug line-clamp-2">
+                    {b.title}
+                  </h4>
+                </div>
+                <div className="text-[11px] text-gray-400 mt-4 pt-3 border-t border-gray-50">
+                  {b.readTime} read • {b.date}
+                </div>
               </Link>
             ))}
           </div>
